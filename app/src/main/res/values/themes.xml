@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Base.Theme.Moment" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">@color/moment_splash_background</item>
+        <item name="android:colorAccent">#6356A5</item>
+    </style>
+    <style name="Theme.Moment" parent="Base.Theme.Moment" />
+    <style name="Theme.Moment.Floating" parent="Base.Theme.Moment">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowCloseOnTouchOutside">false</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+</resources>

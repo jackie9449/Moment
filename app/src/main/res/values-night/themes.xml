@@ -1,0 +1,9 @@
+<resources>
+    <style name="Base.Theme.Moment" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">@color/moment_splash_background</item>
+        <item name="android:colorAccent">#CDBDFF</item>
+    </style>
+</resources>
