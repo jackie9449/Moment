@@ -2,10 +2,6 @@
 
 一款为中短文本设计的原生 Android 剪贴板编辑器。复制文字 → 打开片刻 → 编辑 → 右上角「完成」复制并退出。
 
-## 下载
-
-在 [GitHub Releases](https://github.com/jackie9449/Moment/releases/latest) 下载最新签名 APK，当前版本为 **0.1.15**。后续使用同一签名的版本可直接覆盖安装。
-
 ## 功能
 
 - 每次从桌面或快捷设置主动启动，自动载入当前剪贴板文本。
@@ -34,29 +30,6 @@
 从最近任务返回或切换外观会保留当前编辑。从桌面图标或磁贴再次主动启动则载入新的剪贴板会话。非文本或空剪贴板显示空白页。系统返回键退出时不会隐式复制。
 
 不同厂商的快捷设置布局不同；Android 10–12 需在下拉面板的编辑页面手动添加磁贴。
-
-## 开发
-
-使用 Android Studio 打开项目根目录。依赖：Android SDK Platform 37.0、Build Tools 36.0.0、JDK 17+（当前环境使用 Android Studio 内置 JBR）。首次构建需要下载 Gradle 和 Maven 依赖。
-
-```powershell
-$env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
-$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-.\gradlew.bat :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
-.\gradlew.bat :app:connectedDebugAndroidTest
-```
-
-`assembleDebug` 产物可直接安装。`assembleRelease` 产物经过 R8 压缩。使用以下命令生成不含调试辅助入口的签名 APK：
-
-```powershell
-.\tools\package.ps1
-```
-
-产物为 `artifacts/moment-<版本号>.apk`，当前版本为 `0.1.15`。首次打包生成独立的本地签名身份，保存在 `%USERPROFILE%\.android\moment-signing`，后续打包复用同一个身份以便覆盖升级；密钥和凭据不进入项目或 APK。请将这个目录作为项目发布身份备份。
-
-`app/src/debug/` 内的剪贴板测试 Activity 只用于设备仪器测试，不会进入 release APK。应用的真实剪贴板读取始终在获得前台窗口焦点后执行。
-
-仓库包含源码、Gradle Wrapper、测试和设计 / 验收文档。`artifacts/` 下的本机截图、录屏与原始测试日志不提交；正式安装包在 Releases 提供。签名密钥、凭据、`local.properties` 和构建缓存仅保留在本机。
 
 详细需求和验收记录见 `docs/spec.md` 与 `docs/superpowers/plans/2026-10-30-moment-editor.md`。
 
