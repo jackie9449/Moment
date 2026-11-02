@@ -17,6 +17,7 @@ object MomentIcons {
         moveTo(14f, 20f); lineTo(21f, 20f)
     }
     val Check = icon("Check") { moveTo(5f, 12f); lineTo(10f, 17f); lineTo(20f, 7f) }
+    val DropDown = icon("DropDown") { moveTo(6f, 9f); lineTo(12f, 15f); lineTo(18f, 9f) }
     val Palette = icon("Palette") {
         moveTo(12f, 3f); curveTo(6.8f, 3f, 3f, 6.8f, 3f, 12f)
         curveTo(3f, 17.2f, 7f, 21f, 12f, 21f); lineTo(13f, 21f)

@@ -45,4 +45,6 @@
     <string name="tile_manual">Swipe down twice, tap Edit, and drag Edit clipboard to your active tiles.</string>
     <string name="close_appearance_sheet">Close appearance settings</string>
     <string name="editing">Editing</string>
+    <string name="language">Language</string>
+    <string name="language_follow_system">Follow system</string>
 </resources>

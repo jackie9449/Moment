@@ -3,6 +3,8 @@ package com.jackie.moment
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.Context
+import com.jackie.moment.preferences.AppLanguages
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
@@ -10,6 +12,9 @@ import android.service.quicksettings.TileService
 import com.jackie.moment.preferences.QuickTileState
 
 class QuickEditTileService : TileService() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLanguages.wrap(newBase))
+    }
     override fun onTileAdded() {
         super.onTileAdded()
         if (BuildConfig.DEBUG) android.util.Log.d("MomentTile", "onTileAdded")
@@ -26,11 +31,12 @@ class QuickEditTileService : TileService() {
         super.onStartListening()
         if (BuildConfig.DEBUG) android.util.Log.d("MomentTile", "onStartListening; tile=${qsTile != null}")
         qsTile?.apply {
+            val localized = AppLanguages.wrap(applicationContext)
             QuickTileState.confirmListening(this@QuickEditTileService)
             state = Tile.STATE_INACTIVE
-            label = getString(R.string.tile_label)
-            subtitle = getString(R.string.app_name)
-            contentDescription = getString(R.string.tile_label)
+            label = localized.getString(R.string.tile_label)
+            subtitle = localized.getString(R.string.app_name)
+            contentDescription = localized.getString(R.string.tile_label)
             icon = Icon.createWithResource(this@QuickEditTileService, R.drawable.ic_quick_edit)
             updateTile()
         }

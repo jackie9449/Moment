@@ -12,8 +12,8 @@ android {
         applicationId = "com.jackie.moment"
         minSdk = 29
         targetSdk = 37
-        versionCode = 17
-        versionName = "0.1.16"
+        versionCode = 18
+        versionName = "0.1.17"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -28,6 +28,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures { compose = true; buildConfig = true }
+    bundle { language { enableSplit = false } }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     testOptions { animationsDisabled = true }
 }

@@ -44,4 +44,6 @@
     <string name="tile_manual">下拉两次打开快捷设置，点击编辑，将“编辑剪贴板”拖到已启用区域。</string>
     <string name="close_appearance_sheet">关闭外观设置</string>
     <string name="editing">正在编辑</string>
+    <string name="language">语言</string>
+    <string name="language_follow_system">跟随系统</string>
 </resources>

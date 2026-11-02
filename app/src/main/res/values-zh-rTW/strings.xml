@@ -45,4 +45,6 @@
     <string name="tile_manual">下拉兩次開啟快速設定，點選編輯，將「編輯剪貼簿」拖曳至已啟用區域。</string>
     <string name="close_appearance_sheet">關閉外觀設定</string>
     <string name="editing">正在編輯</string>
+    <string name="language">語言</string>
+    <string name="language_follow_system">跟隨系統</string>
 </resources>

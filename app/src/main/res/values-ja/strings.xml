@@ -45,4 +45,6 @@
     <string name="tile_manual">画面を下に2回スワイプし、編集をタップして「クリップボードを編集」を有効なタイルに移動してください。</string>
     <string name="close_appearance_sheet">外観設定を閉じる</string>
     <string name="editing">編集中</string>
+    <string name="language">言語</string>
+    <string name="language_follow_system">システムに従う</string>
 </resources>

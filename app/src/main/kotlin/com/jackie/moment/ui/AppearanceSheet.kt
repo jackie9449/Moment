@@ -172,6 +172,7 @@ fun AppearanceSheet(appearance: AppearanceStore, tileAdded: Boolean, onDismiss: 
                         }
                     }
                 }
+                LanguagePicker()
             }
             SettingsSection(R.string.theme_palette) {
                 SegmentedOptions {

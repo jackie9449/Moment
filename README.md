@@ -4,7 +4,7 @@
 
 ## 下载
 
-已发布的签名 APK 见 [GitHub Releases](https://github.com/jackie9449/Moment/releases/latest)，本地最新构建位于 `artifacts/`。当前工作版本为 **0.1.16**。后续使用同一签名的版本可直接覆盖安装。
+已发布的签名 APK 见 [GitHub Releases](https://github.com/jackie9449/Moment/releases/latest)，本地最新构建位于 `artifacts/`。当前工作版本为 **0.1.17**。后续使用同一签名的版本可直接覆盖安装。
 
 ## 功能
 
@@ -52,7 +52,7 @@ $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
 .\tools\package.ps1
 ```
 
-产物为 `artifacts/moment-<版本号>.apk`，当前版本为 `0.1.16`。首次打包生成独立的本地签名身份，保存在 `%USERPROFILE%\.android\moment-signing`，后续打包复用同一个身份以便覆盖升级；密钥和凭据不进入项目或 APK。请将这个目录作为项目发布身份备份。
+产物为 `artifacts/moment-<版本号>.apk`，当前版本为 `0.1.17`。首次打包生成独立的本地签名身份，保存在 `%USERPROFILE%\.android\moment-signing`，后续打包复用同一个身份以便覆盖升级；密钥和凭据不进入项目或 APK。请将这个目录作为项目发布身份备份。
 
 `app/src/debug/` 内的剪贴板测试 Activity 只用于设备仪器测试，不会进入 release APK。应用的真实剪贴板读取始终在获得前台窗口焦点后执行。
 
@@ -63,3 +63,5 @@ $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
 0.1.15 将个性化侧滑返回接入同一柔和收起动画：手势预览跟手，确认后缓缓收起，取消则平滑复位；主界面遮罩同步过渡。统一界面规范见 `docs/ui-design-system.md`，验收见 `docs/validation-0.1.15.md`。历史记录继续保留。
 
 0.1.16 增加返回 / 主动离开时完成、360ms 柔和退出，以及英语、繁体中文（含香港）和日语。语言跟随系统，Android 13+ 也可在系统应用语言中单独选择。主屏幕上滑动画由系统桌面管理。详见 `docs/validation-0.1.16.md`。
+
+0.1.17 在个性化页面的显示模式下方加入「语言」：跟随系统 / 简体中文 / 繁體中文 / English / 日本語。切换后立即生效并保留草稿与撤销，选择会保留；Android13+ 与系统应用语言同步。详见 `docs/validation-0.1.17.md`。

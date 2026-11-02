@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Intent
+import android.content.Context
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
@@ -25,6 +26,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import com.jackie.moment.editor.EditorSessionModel
 import com.jackie.moment.preferences.AppearanceStore
+import com.jackie.moment.preferences.AppLanguages
 import com.jackie.moment.preferences.InterfaceStyle
 import com.jackie.moment.preferences.QuickTileState
 import com.jackie.moment.ui.ClipboardSession
@@ -32,6 +34,9 @@ import com.jackie.moment.ui.EditorScreen
 import com.jackie.moment.ui.MomentTheme
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLanguages.wrap(newBase))
+    }
     private var pendingClipboardImport = false
     private var clipboardSession by mutableStateOf<ClipboardSession?>(null)
     private var openAppearance by mutableStateOf(false)
@@ -50,6 +55,7 @@ class MainActivity : ComponentActivity() {
         floatingAtCreation = appearance.useFloatingWindow
         setTheme(if (floatingAtCreation) R.style.Theme_Moment_Floating else R.style.Theme_Moment)
         super.onCreate(savedInstanceState)
+        AppLanguages.migrate(this)
         // The theme styles our window; this public API also updates the
         // system-server occlusion state so the previous task stays visible.
         if (Build.VERSION.SDK_INT >= 30) setTranslucent(floatingAtCreation)
@@ -57,7 +63,7 @@ class MainActivity : ComponentActivity() {
         editorSession = ViewModelProvider(this)[EditorSessionModel::class.java]
         originalText = savedInstanceState?.getString("original_text")
         restoredDirty = savedInstanceState?.getBoolean("session_dirty") == true
-        pendingClipboardImport = savedInstanceState == null
+        pendingClipboardImport = savedInstanceState == null || savedInstanceState.getBoolean("pending_clipboard_import")
         openAppearance = intent.action == TileService.ACTION_QS_TILE_PREFERENCES
         enableEdgeToEdge()
         if (floatingAtCreation) floatingWindow = FloatingWindowController(this)
@@ -144,6 +150,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("pending_clipboard_import", pendingClipboardImport)
         originalText?.let { outState.putString("original_text", it) }
         outState.putBoolean("session_dirty", editorSession.editor().value.text != originalText)
         super.onSaveInstanceState(outState)
