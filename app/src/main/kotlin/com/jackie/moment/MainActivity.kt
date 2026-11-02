@@ -10,6 +10,8 @@ import android.os.Build
 import android.os.Bundle
 import android.service.quicksettings.TileService
 import android.widget.Toast
+import android.view.animation.PathInterpolator
+import androidx.core.graphics.drawable.toDrawable
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -37,6 +39,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var quickTileState: QuickTileState
     private var floatingAtCreation = false
     private var floatingWindow: FloatingWindowController? = null
+    private lateinit var editorSession: EditorSessionModel
+    private var originalText: String? = null
+    private var completing = false
+    private var restoredDirty = false
+    private var tileRequestActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         appearance = AppearanceStore(this)
@@ -47,7 +54,9 @@ class MainActivity : ComponentActivity() {
         // system-server occlusion state so the previous task stays visible.
         if (Build.VERSION.SDK_INT >= 30) setTranslucent(floatingAtCreation)
         quickTileState = QuickTileState(this)
-        val editorSession = ViewModelProvider(this)[EditorSessionModel::class.java]
+        editorSession = ViewModelProvider(this)[EditorSessionModel::class.java]
+        originalText = savedInstanceState?.getString("original_text")
+        restoredDirty = savedInstanceState?.getBoolean("session_dirty") == true
         pendingClipboardImport = savedInstanceState == null
         openAppearance = intent.action == TileService.ACTION_QS_TILE_PREFERENCES
         enableEdgeToEdge()
@@ -122,6 +131,8 @@ class MainActivity : ComponentActivity() {
             val clip = clipboard.primaryClip
             // Text only. Never dereference a copied content URI or execute a copied Intent.
             val text = if (clip != null && clip.itemCount > 0) clip.getItemAt(0).text?.toString() else null
+            originalText = text.orEmpty()
+            restoredDirty = false
             clipboardSession = ClipboardSession(
                 id = android.os.SystemClock.elapsedRealtimeNanos(),
                 text = text.orEmpty(),
@@ -132,20 +143,56 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun finishEditing(text: String): Boolean = try {
-        getSystemService(ClipboardManager::class.java).setPrimaryClip(
-            ClipData.newPlainText(getString(R.string.app_name), text)
-        )
-        if (Build.VERSION.SDK_INT < 33) showMessage(R.string.copied)
-        finishAndRemoveTask()
-        if (Build.VERSION.SDK_INT < 34) {
-            @Suppress("DEPRECATION")
-            overridePendingTransition(R.anim.moment_stay, R.anim.moment_exit)
+    override fun onSaveInstanceState(outState: Bundle) {
+        originalText?.let { outState.putString("original_text", it) }
+        outState.putBoolean("session_dirty", editorSession.editor().value.text != originalText)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // User-chosen Home / app switching, not generic pause or lost focus.
+        if (!tileRequestActive && !isChangingConfigurations && !isFinishing &&
+            originalText != null && (restoredDirty || editorSession.editor().canUndo || editorSession.editor().canRedo) &&
+            editorSession.editor().value.text != originalText) {
+            finishEditing(editorSession.editor().value.text, animate = false)
         }
-        true
-    } catch (_: RuntimeException) {
-        showMessage(R.string.copy_failed)
-        false
+    }
+
+    private fun finishEditing(text: String): Boolean = finishEditing(text, animate = true)
+
+    private fun finishEditing(text: String, animate: Boolean): Boolean {
+        if (completing) return true
+        try {
+            getSystemService(ClipboardManager::class.java).setPrimaryClip(
+                ClipData.newPlainText(getString(R.string.app_name), text)
+            )
+        } catch (_: RuntimeException) {
+            showMessage(R.string.copy_failed)
+            return false
+        }
+        completing = true
+        if (Build.VERSION.SDK_INT < 33) showMessage(R.string.copied)
+        if (animate && Build.VERSION.SDK_INT >= 30) {
+            try {
+                setTranslucent(true)
+                window.setBackgroundDrawable(android.graphics.Color.TRANSPARENT.toDrawable())
+                if (Build.VERSION.SDK_INT >= 34) overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
+                window.decorView.animate().alpha(0f).scaleX(.97f).scaleY(.97f)
+                    .translationY(20f * resources.displayMetrics.density).setDuration(360)
+                    .setInterpolator(PathInterpolator(.32f, 0f, .18f, 1f))
+                    .withEndAction { finishAndRemoveTask() }.start()
+            } catch (_: RuntimeException) {
+                finishAndRemoveTask()
+            }
+        } else {
+            finishAndRemoveTask()
+            if (animate && Build.VERSION.SDK_INT < 30) {
+                @Suppress("DEPRECATION")
+                overridePendingTransition(R.anim.moment_stay, R.anim.moment_exit)
+            }
+        }
+        return true
     }
 
     private fun requestQuickTile() {
@@ -154,12 +201,14 @@ class MainActivity : ComponentActivity() {
             return
         }
         try {
+            tileRequestActive = true
             getSystemService(StatusBarManager::class.java).requestAddTileService(
                 ComponentName(this, QuickEditTileService::class.java),
                 getString(R.string.tile_label),
                 Icon.createWithResource(this, R.drawable.ic_quick_edit),
                 mainExecutor,
             ) { result ->
+                tileRequestActive = false
                 if (result == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED ||
                     result == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
                     QuickTileState.record(this, true)
@@ -171,6 +220,7 @@ class MainActivity : ComponentActivity() {
                 })
             }
         } catch (_: RuntimeException) {
+            tileRequestActive = false
             showMessage(R.string.tile_manual)
         }
     }

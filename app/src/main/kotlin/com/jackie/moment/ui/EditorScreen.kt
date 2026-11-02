@@ -2,6 +2,7 @@ package com.jackie.moment.ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
@@ -115,6 +116,13 @@ fun EditorScreen(
     }
 
     val glassAppearance = LocalGlassAppearance.current
+    BackHandler(enabled = !showAppearance) {
+        if (!completing) {
+            completing = true
+            keyboard?.hide()
+            if (!onFinish(editor.value.text)) completing = false
+        }
+    }
     val glass = glassAppearance.enabled
     val scene = remember { GlassScene() }
     CompositionLocalProvider(LocalGlassScene provides scene) {

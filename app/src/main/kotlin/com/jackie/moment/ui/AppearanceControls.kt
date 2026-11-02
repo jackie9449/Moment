@@ -37,7 +37,7 @@ internal fun StyleChoice(style: InterfaceStyle, selected: Boolean, modifier: Mod
                     InterfaceStyle.MATERIAL -> R.string.style_material
                     InterfaceStyle.LIQUID_GLASS -> R.string.style_liquid_glass
                     InterfaceStyle.FROSTED_GLASS -> R.string.style_frosted_glass
-                }),style=MaterialTheme.typography.labelLarge,modifier=Modifier.weight(1f),maxLines=1,overflow=TextOverflow.Ellipsis)
+                }),style=MaterialTheme.typography.labelLarge,modifier=Modifier.weight(1f),minLines=2,maxLines=2,overflow=TextOverflow.Ellipsis)
                 Spacer(Modifier.width(3.dp))
                 if(selected) Icon(MomentIcons.Check,null,Modifier.size(15.dp),tint=MaterialTheme.colorScheme.primary)
                 else Spacer(Modifier.size(15.dp))

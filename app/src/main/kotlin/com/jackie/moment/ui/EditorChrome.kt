@@ -27,7 +27,7 @@ internal fun EditorSheetHeader(importedText: Boolean, edited: Boolean, metrics: 
     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = if (compact) 10.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(if (edited) "正在编辑" else stringResource(if (importedText) R.string.clipboard_loaded else R.string.clipboard_empty),
+            Text(stringResource(if (edited) R.string.editing else if (importedText) R.string.clipboard_loaded else R.string.clipboard_empty),
                 style = MaterialTheme.typography.labelMedium, color = metadataColor,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (!minimal) Text(stringResource(R.string.text_counts, metrics.characters, metrics.lines),

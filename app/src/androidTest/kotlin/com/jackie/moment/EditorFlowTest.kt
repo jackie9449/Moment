@@ -28,10 +28,46 @@ class EditorFlowTest {
     private var activity: ActivityScenario<MainActivity>? = null
 
     @Before fun prepare() {
+        device.executeShellCommand("cmd statusbar collapse")
         val style = InstrumentationRegistry.getArguments().getString("interface_style", "MATERIAL")
         context.getSharedPreferences("appearance", Context.MODE_PRIVATE).edit().clear().putString("style", style).commit()
     }
-    @After fun close() { activity?.close() }
+    @After fun close() {
+        device.executeShellCommand("cmd statusbar collapse")
+        activity?.close()
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val monitor = androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry.getInstance()
+            androidx.test.runner.lifecycle.Stage.entries.flatMap { monitor.getActivitiesInStage(it) }
+                .filterIsInstance<MainActivity>().distinct().forEach { it.finishAndRemoveTask() }
+        }
+    }
+
+    @Test fun editorBackCopiesExactDraftAndRemovesTask() {
+        seedClipboard("original")
+        openEditor("original")
+        val draft = "  Back 返回 🙂\n\n "
+        compose.onNodeWithTag("editor").performTextReplacement(draft)
+        // First back can belong to the IME. The next closes the editor.
+        device.pressBack()
+        compose.waitForIdle()
+        if (activity?.state != androidx.lifecycle.Lifecycle.State.DESTROYED) device.pressBack()
+        await { activity?.state == androidx.lifecycle.Lifecycle.State.DESTROYED }
+        assertEquals(draft, readClipboard())
+    }
+
+    @Test fun homeAfterEditingCopiesExactDraftAndRemovesTask() {
+        seedClipboard("original")
+        openEditor("original")
+        val draft = "  Home ホーム 🙂\n\n "
+        compose.onNodeWithTag("editor").performTextReplacement(draft)
+        device.executeShellCommand("input swipe ${device.displayWidth / 2} ${device.displayHeight - 20} ${device.displayWidth / 2} ${device.displayHeight / 3} 300")
+        SystemClock.sleep(1200)
+        java.io.File(context.getExternalFilesDir(null), "home-gesture-state.txt").writeText(
+            "package=${device.currentPackageName} state=${activity?.state}\n" +
+                device.executeShellCommand("dumpsys activity activities"))
+        await { activity?.state == androidx.lifecycle.Lifecycle.State.DESTROYED }
+        assertEquals(draft, readClipboard())
+    }
 
     @Test fun launchPasteEditCompleteCopiesExactTextAndFinishesTask() {
         val original = "  这是剪贴板的文字\n第二行 🙂  "
@@ -128,17 +164,21 @@ class EditorFlowTest {
         device.executeShellCommand("am start -W -n com.jackie.moment/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER")
         waitForEditor()
         waitForEditorText("第一次编辑")
-        compose.onNodeWithTag("editor").performTextReplacement("旧草稿")
-        seedClipboard("快捷开关启动的新文本\nAndroid 17 🙂")
         val component = "com.jackie.moment/.QuickEditTileService"
+        device.executeShellCommand("cmd statusbar remove-tile $component")
         device.executeShellCommand("cmd statusbar add-tile $component")
         device.pressHome()
+        // Keep this session unmodified to exercise fresh-intent replacement.
+        // Edited-session Home completion is covered by its own native test.
+        seedClipboard("快捷开关启动的新文本\nAndroid 17 🙂")
         device.openQuickSettings()
         SystemClock.sleep(1200)
         device.executeShellCommand("cmd statusbar click-tile $component")
+        device.executeShellCommand("cmd statusbar collapse")
         waitForEditorText("快捷开关启动的新文本\nAndroid 17 🙂")
         compose.onNodeWithTag("editor").assertTextEquals("快捷开关启动的新文本\nAndroid 17 🙂")
         compose.onNodeWithTag("done").performClick()
+        compose.waitUntil(10_000) { compose.onAllNodesWithTag("editor").fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty() }
     }
 
     @Test fun tileCardTracksSystemAdditionRemovalAndExistingTileAfterUpgrade() {
@@ -248,7 +288,7 @@ class EditorFlowTest {
     private fun probe(seed: String?): String? {
         val previous = ClipboardProbeActivity.observations
         val intent = Intent(context, ClipboardProbeActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_USER_ACTION)
             if (seed != null) putExtra(ClipboardProbeActivity.EXTRA_SEED, seed)
         }
         ActivityScenario.launch<ClipboardProbeActivity>(intent).use {
